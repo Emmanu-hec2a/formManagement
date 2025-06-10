@@ -1,0 +1,109 @@
+<!-- templates/leave_out_chit.html -->
+{% extends "base.html" %}
+
+{% block title %}Leave Out Chit{% endblock %}
+
+{% block content %}
+<div class="nav-links">
+    <a href="/">← Back to Home</a>
+    <a href="/internal-memo">Internal Memo</a>
+    <a href="/teacher-duty">Teacher Duty</a>
+</div>
+
+<h2 style="text-align: center; color: #333; margin-bottom: 30px;">Student Leave Out Chit</h2>
+
+<form id="leaveChitForm">
+    <div class="form-row">
+        <div class="form-group">
+            <label for="student_name">Student Name *</label>
+            <input type="text" id="student_name" name="student_name" required>
+        </div>
+        <div class="form-group">
+            <label for="student_class">Class *</label>
+            <input type="text" id="student_class" name="student_class" placeholder="e.g., Form 4A" required>
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="admission_no">Admission Number *</label>
+            <input type="text" id="admission_no" name="admission_no" required>
+        </div>
+        <div class="form-group">
+            <label for="leave_date">Leave Date *</label>
+            <input type="date" id="leave_date" name="leave_date" required>
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="leave_time">Time Out *</label>
+            <input type="time" id="leave_time" name="leave_time" required>
+        </div>
+        <div class="form-group">
+            <label for="return_time">Expected Return Time</label>
+            <input type="time" id="return_time" name="return_time">
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="reason">Reason for Leave *</label>
+        <textarea id="reason" name="reason" placeholder="Enter the reason for requesting leave..." required></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Generate Leave Out Chit</button>
+    <div class="loading" id="loading">Generating PDF...</div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('leaveChitForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const loading = document.getElementById('loading');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    loading.style.display = 'block';
+    submitBtn.disabled = true;
+    
+    const formData = {
+        student_name: document.getElementById('student_name').value,
+        student_class: document.getElementById('student_class').value,
+        admission_no: document.getElementById('admission_no').value,
+        leave_date: document.getElementById('leave_date').value,
+        leave_time: document.getElementById('leave_time').value,
+        return_time: document.getElementById('return_time').value,
+        reason: document.getElementById('reason').value
+    };
+    
+    try {
+        const response = await fetch('/generate-leave-chit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `leave_out_chit_${formData.student_name.replace(/\s+/g, '_')}.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('Error generating PDF. Please try again.');
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        loading.style.display = 'none';
+        submitBtn.disabled = false;
+    }
+});
+</script>
+{% endblock %}
+

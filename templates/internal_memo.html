@@ -1,0 +1,336 @@
+<!-- templates/internal_memo.html -->
+{% extends "base.html" %}
+
+{% block title %}Internal Memo{% endblock %}
+
+{% block content %}
+
+<div class="form-container">
+            <!-- AI Assistant Section -->
+            <div class="ai-section">
+                <h3>AI Memo Assistant</h3>
+                <p style="margin-bottom: 15px; color: #636e72;">Describe what you want to communicate, and I'll help you write a professional memo!</p>
+                
+                <div class="ai-prompt-container">
+                    <textarea 
+                        id="ai-prompt" 
+                        class="ai-prompt-input" 
+                        placeholder="Example: 'Remind all teachers about the upcoming parent-teacher meeting next Friday at 2 PM in the school hall. Include dress code requirements and preparation guidelines.'"
+                    ></textarea>
+                </div>
+
+                <div class="ai-buttons">
+                    <button type="button" class="ai-btn" id="generate-btn">
+                        🚀 Generate Memo
+                    </button>
+                    <button type="button" class="ai-btn templates-btn" id="templates-btn">
+                        📝 View Templates
+                    </button>
+                    <button type="button" class="ai-btn" id="clear-btn">
+                        🗑️ Clear All
+                    </button>
+                </div>
+
+                <div id="template-suggestions" class="template-suggestions">
+                    <h4 style="margin-bottom: 10px;">Quick Templates:</h4>
+                    <div id="template-list"></div>
+                </div>
+
+                <div id="ai-loading" class="loading">
+                    <div class="spinner"></div>
+                    <p>Generating your memo...</p>
+                </div>
+
+                <div id="success-message" class="success-message"></div>
+                <div id="error-message" class="error-message"></div>
+            </div>
+
+<div class="nav-links">
+    <a href="/">← Back to Home</a>
+    <a href="/leave-out-chit">Leave Out Chit</a>
+    <a href="/teacher-duty">Teacher Duty</a>
+</div>
+
+<h2 style="text-align: center; color: #333; margin-bottom: 30px;">Internal Memorandum</h2>
+
+<form id="memoForm">
+    <div class="form-row">
+        <div class="form-group">
+            <label for="memo_no">Memo Number *</label>
+            <input type="text" id="memo_no" name="memo_no" placeholder="e.g., MEMO/2025/001" required>
+        </div>
+        <div class="form-group">
+            <label for="date_issued">Date *</label>
+            <input type="date" id="date_issued" name="date_issued" required>
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="recipient">To (Recipient) *</label>
+            <input type="text" id="recipient" name="recipient" placeholder="All Teachers / Specific Department" required>
+        </div>
+        <div class="form-group">
+            <label for="sender">From (Sender) *</label>
+            <input type="text" id="sender" name="sender" placeholder="Principal / HOD" required>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="subject">Subject *</label>
+        <input type="text" id="subject" name="subject" placeholder="Brief subject of the memo" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="content">Memo Content *</label>
+        <textarea id="content" name="content" placeholder="Enter the full content of the memorandum..." required style="min-height: 200px;"></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Generate Internal Memo</button>
+    <div class="loading" id="loading">Generating PDF...</div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('memoForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const loading = document.getElementById('loading');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    loading.style.display = 'block';
+    submitBtn.disabled = true;
+    
+    const formData = {
+        memo_no: document.getElementById('memo_no').value,
+        date_issued: document.getElementById('date_issued').value,
+        recipient: document.getElementById('recipient').value,
+        sender: document.getElementById('sender').value,
+        subject: document.getElementById('subject').value,
+        content: document.getElementById('content').value
+    };
+    
+    try {
+        const response = await fetch('/generate-memo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `internal_memo_${formData.memo_no.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('Error generating PDF. Please try again.');
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        loading.style.display = 'none';
+        submitBtn.disabled = false;
+    }
+});
+
+ // AI Assistant functionality
+        document.getElementById('generate-btn').addEventListener('click', async function() {
+            const prompt = document.getElementById('ai-prompt').value.trim();
+            const sender = document.getElementById('sender').value.trim();
+            const recipient = document.getElementById('recipient').value.trim();
+            
+            if (!prompt) {
+                showError('Please enter a description of what you want to communicate.');
+                return;
+            }
+
+            showLoading(true);
+            hideMessages();
+
+            try {
+                const response = await fetch('/ai-generate-memo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        memo_type: 'internal memo',
+                        sender: sender,
+                        recipient: recipient
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Fill the memo content
+                    document.getElementById('content').value = data.content;
+                    
+                    // Suggest subject if available
+                    if (data.suggested_subject && !document.getElementById('subject').value) {
+                        document.getElementById('subject').value = data.suggested_subject;
+                    }
+
+                    showSuccess(`Memo generated successfully! ${data.tokens_used ? `(${data.tokens_used} tokens used)` : ''}`);
+                } else {
+                    // Fallback to local generation
+                    await generateMemoLocal(prompt);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                // Fallback to local generation
+                await generateMemoLocal(prompt);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        // Fallback local generation
+        async function generateMemoLocal(prompt) {
+            try {
+                const response = await fetch('/ai-generate-memo-local', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('content').value = data.content;
+                    if (data.suggested_subject && !document.getElementById('subject').value) {
+                        document.getElementById('subject').value = data.suggested_subject;
+                    }
+                    showSuccess(data.note || 'Memo generated using local templates.');
+                } else {
+                    showError('Failed to generate memo. Please try again or write manually.');
+                }
+            } catch (error) {
+                showError('Error generating memo. Please check your connection and try again.');
+            }
+        }
+
+        // Templates functionality
+        document.getElementById('templates-btn').addEventListener('click', async function() {
+            const templatesDiv = document.getElementById('template-suggestions');
+            const templateList = document.getElementById('template-list');
+            
+            if (templatesDiv.style.display === 'none' || !templatesDiv.style.display) {
+                try {
+                    const response = await fetch('/memo-templates');
+                    const data = await response.json();
+                    
+                    templateList.innerHTML = '';
+                    Object.entries(data.templates).forEach(([key, template]) => {
+                        const div = document.createElement('div');
+                        div.className = 'template-item';
+                        div.innerHTML = `<strong>${template.title}</strong><br><small>${template.prompt}</small>`;
+                        div.onclick = () => {
+                            document.getElementById('ai-prompt').value = template.prompt;
+                            templatesDiv.style.display = 'none';
+                        };
+                        templateList.appendChild(div);
+                    });
+                    
+                    templatesDiv.style.display = 'block';
+                } catch (error) {
+                    showError('Failed to load templates.');
+                }
+            } else {
+                templatesDiv.style.display = 'none';
+            }
+        });
+
+        // Clear functionality
+        document.getElementById('clear-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all fields?')) {
+                document.getElementById('ai-prompt').value = '';
+                document.getElementById('content').value = '';
+                document.getElementById('subject').value = '';
+                hideMessages();
+            }
+        });
+
+        // Form submission
+        document.getElementById('memo-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                memo_no: document.getElementById('memo-no').value,
+                date_issued: document.getElementById('date-issued').value,
+                recipient: document.getElementById('recipient').value,
+                sender: document.getElementById('sender').value,
+                subject: document.getElementById('subject').value,
+                content: document.getElementById('content').value
+            };
+
+            try {
+                const response = await fetch('/generate-memo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `internal_memo_${formData.memo_no || 'generated'}.pdf`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    showSuccess('Memo PDF generated successfully!');
+                } else {
+                    showError('Failed to generate PDF. Please try again.');
+                }
+            } catch (error) {
+                showError('Error generating PDF. Please check your connection.');
+            }
+        });
+
+        // Utility functions
+        function showLoading(show) {
+            document.getElementById('ai-loading').style.display = show ? 'block' : 'none';
+            document.getElementById('generate-btn').disabled = show;
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => successDiv.style.display = 'none', 5000);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => errorDiv.style.display = 'none', 5000);
+        }
+
+        function hideMessages() {
+            document.getElementById('success-message').style.display = 'none';
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+// Set today's date as default
+document.getElementById('date_issued').value = new Date().toISOString().split('T')[0];
+</script>
+{% endblock %}
+

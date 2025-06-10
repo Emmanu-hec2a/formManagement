@@ -1,0 +1,106 @@
+<!-- templates/teacher_duty.html -->
+{% extends "base.html" %}
+
+{% block title %}Teacher Duty Form{% endblock %}
+
+{% block content %}
+<div class="nav-links">
+    <a href="/">← Back to Home</a>
+    <a href="/leave-out-chit">Leave Out Chit</a>
+    <a href="/internal-memo">Internal Memo</a>
+</div>
+
+<h2 style="text-align: center; color: #333; margin-bottom: 30px;">Teacher On Duty Form</h2>
+
+<form id="dutyForm">
+    <div class="form-row">
+        <div class="form-group">
+            <label for="teacher_name">Teacher Name *</label>
+            <input type="text" id="teacher_name" name="teacher_name" placeholder="Full name of the teacher" required>
+        </div>
+        <div class="form-group">
+            <label for="duty_date">Duty Date *</label>
+            <input type="date" id="duty_date" name="duty_date" required>
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="periods">Periods *</label>
+            <input type="text" id="periods" name="periods" placeholder="e.g., 1-2, 5-6" required>
+        </div>
+        <div class="form-group">
+            <label for="subjects">Subjects *</label>
+            <input type="text" id="subjects" name="subjects" placeholder="e.g., Mathematics, English" required>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="classes">Classes *</label>
+        <input type="text" id="classes" name="classes" placeholder="e.g., Form 1A, Form 2B" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="special_instructions">Special Instructions</label>
+        <textarea id="special_instructions" name="special_instructions" placeholder="Any special instructions or notes for the duty..."></textarea>
+    </div>
+    
+    <button type="submit" class="btn">Generate Teacher Duty Form</button>
+    <div class="loading" id="loading">Generating PDF...</div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('dutyForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const loading = document.getElementById('loading');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    
+    loading.style.display = 'block';
+    submitBtn.disabled = true;
+    
+    const formData = {
+        teacher_name: document.getElementById('teacher_name').value,
+        duty_date: document.getElementById('duty_date').value,
+        periods: document.getElementById('periods').value,
+        subjects: document.getElementById('subjects').value,
+        classes: document.getElementById('classes').value,
+        special_instructions: document.getElementById('special_instructions').value
+    };
+    
+    try {
+        const response = await fetch('/generate-duty-form', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `teacher_duty_${formData.teacher_name.replace(/\s+/g, '_')}.pdf`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('Error generating PDF. Please try again.');
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    } finally {
+        loading.style.display = 'none';
+        submitBtn.disabled = false;
+    }
+});
+
+// Set tomorrow's date as default for duty
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+document.getElementById('duty_date').value = tomorrow.toISOString().split('T')[0];
+</script>
+{% endblock %}

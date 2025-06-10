@@ -1,0 +1,27 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block title %}School Forms - Home{% endblock %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 40px;">
+    <h2 style="color: #333; margin-bottom: 20px;">School Forms Management System</h2>
+    <p style="color: #666; font-size: 16px;">Generate professional school forms with automated banner and formatting</p>
+</div>
+
+<div class="nav-links">
+    <a href="/leave-out-chit">Leave Out Chit</a>
+    <a href="/internal-memo">Internal Memo</a>
+    <a href="/teacher-duty">Teacher Duty Form</a>
+</div>
+
+<div style="background: #f8f9fa; padding: 30px; border-radius: 10px; text-align: left;">
+    <h3 style="color: #333; margin-bottom: 15px;">Features</h3>
+    <ul style="list-style: none; color: #666;">
+        <li style="margin-bottom: 10px;">✓ Automated school banner on all forms</li>
+        <li style="margin-bottom: 10px;">✓ Professional PDF generation</li>
+        <li style="margin-bottom: 10px;">✓ Data storage and tracking</li>
+        <li style="margin-bottom: 10px;">✓ Multiple form types supported</li>
+    </ul>
+</div>
+{% endblock %}
