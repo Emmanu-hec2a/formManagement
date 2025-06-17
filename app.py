@@ -72,8 +72,8 @@ class MemoAI:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_message}
                 ],
-                max_tokens=400,
-                temperature=0.7
+                max_tokens=800,
+                temperature=0.5
             )
             
             return {
@@ -168,8 +168,8 @@ SCHOOL_INFO = {
     'name': 'BISHOP ABIERO SHAURIMOYO SECONDARY SCHOOL',
     'po_box': 'P.O Box 1691-40100',
     'location': 'Kisumu, Kenya',
-    'tel': 'Tel: +254 700 123 456',
-    'email': 'bishopabiero@yahoo.com',
+    'tel': 'Tel: +254 112 135 686',
+    'email': 'bishopabieroshaurimoyo@yahoo.com',
     'motto': 'Empowerment and Service'
 }
 

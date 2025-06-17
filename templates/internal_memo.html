@@ -6,7 +6,44 @@
 {% block content %}
 
 <div class="form-container">
-            <!-- AI Assistant Section -->
+
+<div class="nav-links">
+    <a href="/">← Back to Home</a>
+    <!-- <a href="/leave-out-chit">Leave Out Chit</a> -->
+    <!-- <a href="/teacher-duty">Teacher Duty</a> -->
+</div>
+
+<h2 style="text-align: center; color: #333; margin-bottom: 30px;">Internal Memorandum</h2>
+
+<form id="memoForm">
+    <div class="form-row">
+        <div class="form-group">
+            <label for="memo_no">Memo Number *</label>
+            <input type="text" id="memo_no" name="memo_no" placeholder="e.g., MEMO/2025/001" required>
+        </div>
+        <div class="form-group">
+            <label for="date_issued">Date *</label>
+            <input type="date" id="date_issued" name="date_issued" required>
+        </div>
+    </div>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="recipient">To (Recipient) *</label>
+            <input type="text" id="recipient" name="recipient" placeholder="All Teachers / Specific Department" required>
+        </div>
+        <div class="form-group">
+            <label for="sender">From (Sender) *</label>
+            <input type="text" id="sender" name="sender" placeholder="Principal / HOD" required>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="subject">Subject *</label>
+        <input type="text" id="subject" name="subject" placeholder="Brief subject of the memo" required>
+    </div>
+
+    <!-- AI Assistant Section -->
             <div class="ai-section">
                 <h3>AI Memo Assistant</h3>
                 <p style="margin-bottom: 15px; color: #636e72;">Describe what you want to communicate, and I'll help you write a professional memo!</p>
@@ -44,42 +81,6 @@
                 <div id="success-message" class="success-message"></div>
                 <div id="error-message" class="error-message"></div>
             </div>
-
-<div class="nav-links">
-    <a href="/">← Back to Home</a>
-    <a href="/leave-out-chit">Leave Out Chit</a>
-    <a href="/teacher-duty">Teacher Duty</a>
-</div>
-
-<h2 style="text-align: center; color: #333; margin-bottom: 30px;">Internal Memorandum</h2>
-
-<form id="memoForm">
-    <div class="form-row">
-        <div class="form-group">
-            <label for="memo_no">Memo Number *</label>
-            <input type="text" id="memo_no" name="memo_no" placeholder="e.g., MEMO/2025/001" required>
-        </div>
-        <div class="form-group">
-            <label for="date_issued">Date *</label>
-            <input type="date" id="date_issued" name="date_issued" required>
-        </div>
-    </div>
-    
-    <div class="form-row">
-        <div class="form-group">
-            <label for="recipient">To (Recipient) *</label>
-            <input type="text" id="recipient" name="recipient" placeholder="All Teachers / Specific Department" required>
-        </div>
-        <div class="form-group">
-            <label for="sender">From (Sender) *</label>
-            <input type="text" id="sender" name="sender" placeholder="Principal / HOD" required>
-        </div>
-    </div>
-    
-    <div class="form-group">
-        <label for="subject">Subject *</label>
-        <input type="text" id="subject" name="subject" placeholder="Brief subject of the memo" required>
-    </div>
     
     <div class="form-group">
         <label for="content">Memo Content *</label>
