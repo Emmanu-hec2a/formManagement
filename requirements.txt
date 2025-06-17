@@ -2,3 +2,4 @@ Flask==2.2.5
 reportlab==4.0.4
 Pillow==11.2.1
 openai
+python-dotenv
